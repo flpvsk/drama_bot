@@ -5,6 +5,8 @@ const uniqBy = require('lodash/uniqBy');
 const sortBy = require('lodash/sortBy');
 const levenstein = require('./levenstein');
 
+const telegram = require('telegram-bot-api');
+
 const client = new elasticsearch.Client({
   host: 'localhost:9200',
   log: 'warning'
@@ -48,11 +50,6 @@ const makeOrQuery = (text) => {
 }
 
 
-process.stdout.write('Hi\n> ')
-
-process.stdin.setEncoding('utf8');
-
-
 const hitsSort = (text) => {
   return (hit1) => {
 
@@ -68,9 +65,28 @@ const hitsSort = (text) => {
   };
 };
 
-process.stdin.on('data', (text) => {
-  if (text === '\n') {
-    process.stdout.write('> ')
+
+const bot = new telegram({
+  token: process.env.TELEGRAM_TOKEN,
+  updates: {
+    enabled: true
+  }
+});
+
+
+bot.on('message', (msg) => {
+  const text = msg.text;
+
+  if (text === '/start') {
+      bot.sendMessage({
+        chat_id: msg.chat.id,
+        text: (
+          `I've been brought to this world to spread drama...\n\n` +
+          `and congratulate Ale with his birthday.\n\n` +
+          `What's up?`
+        )
+      });
+      return;
   }
 
   client.search(makeSearch(makeAndQuery(text), 0, 100))
@@ -83,7 +99,10 @@ process.stdin.on('data', (text) => {
     .then((results) => {
       const total = results.hits.total;
       if (total === 0) {
-        process.stdout.write('You didn\'t want to say that!\n> ')
+        bot.sendMessage({
+          chat_id: msg.chat.id,
+          text: `I don't even know what to say..`
+        });
         return;
       }
 
@@ -94,6 +113,9 @@ process.stdin.on('data', (text) => {
       hits = sortBy(hits, hitsSort(text));
 
       const random = Math.floor(Math.random() * (hits.length / 2));
-      process.stdout.write(`${hits[random]._source.text}\n> `)
+      bot.sendMessage({
+        chat_id: msg.chat.id,
+        text: `${hits[random]._source.text}`
+      });
     });
 });

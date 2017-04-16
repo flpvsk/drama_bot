@@ -10,7 +10,10 @@
   "license": "ISC",
   "dependencies": {
     "elasticsearch": "^13.0.0-rc2",
-    "lodash": "^4.17.4"
+    "express": "^4.15.2",
+    "lodash": "^4.17.4",
+    "telegram-api": "^0.7.9",
+    "telegram-bot-api": "^1.2.0"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1"
