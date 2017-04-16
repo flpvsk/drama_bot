@@ -9,7 +9,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "elasticsearch": "^13.0.0-rc2"
+    "elasticsearch": "^13.0.0-rc2",
+    "lodash": "^4.17.4"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1"

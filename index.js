@@ -1,6 +1,8 @@
 const elasticsearch = require('elasticsearch');
 const readline = require('readline');
 const util = require('util');
+const uniqBy = require('lodash/uniqBy');
+const sortBy = require('lodash/sortBy');
 const levenstein = require('./levenstein');
 
 const client = new elasticsearch.Client({
@@ -51,19 +53,18 @@ process.stdout.write('Hi\n> ')
 process.stdin.setEncoding('utf8');
 
 
-
-
-      // const total = Math.min(results.hits.total, 50);
-      // const r = Math.floor(Math.random() * total);
-      // return client.search(makeSearch(makeAndQuery(text), r, 1));
-
-
 const hitsSort = (text) => {
-  return (hit1, hit2) => {
-    return (
-      levenstein(text, hit1._source.text) -
-      levenstein(text, hit2._source.text)
-    );
+  return (hit1) => {
+
+    const distance = hit1._source.in_response_to.reduce((acc, v) => {
+      let l = levenstein(text, v.text);
+      if (l < acc) {
+        return l;
+      }
+      return acc;
+    }, 1000);
+
+    return distance;
   };
 };
 
@@ -86,17 +87,13 @@ process.stdin.on('data', (text) => {
         return;
       }
 
-      const textSet = new Set();
-      for (let hit of results.hits.hits) {
-        textSet.add(hit._source.text);
-      }
-      const random = Math.floor(Math.random() * (textSet.size / 2));
+      let hits = uniqBy(results.hits.hits, (hit) => {
+        return hit._source.text;
+      });
 
-      let i = 0;
-      for (let answer of textSet) {
-        if (i++ === random) {
-          process.stdout.write(`${answer}\n> `)
-        }
-      }
+      hits = sortBy(hits, hitsSort(text));
+
+      const random = Math.floor(Math.random() * (hits.length / 2));
+      process.stdout.write(`${hits[random]._source.text}\n> `)
     });
 });
