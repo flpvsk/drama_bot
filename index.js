@@ -101,7 +101,7 @@ bot.on('message', (msg) => {
       if (total === 0) {
         bot.sendMessage({
           chat_id: msg.chat.id,
-          text: `I don't even know what to say..`
+          text: `I don't even know what to say...`
         });
         return;
       }
